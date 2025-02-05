@@ -124,7 +124,7 @@ def show_win_screen(score):
     )
 
     score_text = FONTS["score"].render(f"Score: {score}", True, BLACK)
-    screen.blit(score_text, (screen.get_width() - 180, 10))
+    screen.blit(score_text, (screen.get_width() - score_text.get_width() - 10, 10))
 
     play_again_text = FONTS["button"].render("Play Again", True, BLACK)
     play_again_rect = play_again_text.get_rect(
@@ -206,7 +206,7 @@ def run_game(skip_main_menu=False):
                 screen.blit(player.current_key_sprite, (10, 10))
 
             score_text = FONTS["score"].render(f"Score: {score}", True, BLACK)
-            screen.blit(score_text, (screen.get_width() - 180, 10))
+            screen.blit(score_text, (width - score_text.get_width() - 10, 10))
 
             pygame.display.flip()
 
