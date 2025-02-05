@@ -9,7 +9,7 @@ FPS = 60
 FONTS = {
     "title": pygame.font.Font(None, 120),
     "button": pygame.font.Font(None, 60),
-    "score": pygame.font.Font(None, 50),
+    "medium": pygame.font.Font(None, 50),
 }
 
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -114,6 +114,9 @@ def show_main_menu():
                     pygame.quit()
                     return False
 
+def display_score(screen_width, score):
+    score_text = FONTS["medium"].render(f"Score: {score}", True, BLACK)
+    screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))
 
 def show_win_screen(score):
     screen.fill(WHITE)
@@ -123,8 +126,7 @@ def show_win_screen(score):
         center=(screen.get_width() // 2, screen.get_height() // 3)
     )
 
-    score_text = FONTS["score"].render(f"Score: {score}", True, BLACK)
-    screen.blit(score_text, (screen.get_width() - score_text.get_width() - 10, 10))
+    display_score(screen.get_width(), score)
 
     play_again_text = FONTS["button"].render("Play Again", True, BLACK)
     play_again_rect = play_again_text.get_rect(
@@ -203,10 +205,11 @@ def run_game(skip_main_menu=False):
             all_sprites.draw(screen)
 
             if player.current_key_sprite:
-                screen.blit(player.current_key_sprite, (10, 10))
+                screen.blit(player.current_key_sprite, (10, 55))
 
-            score_text = FONTS["score"].render(f"Score: {score}", True, BLACK)
-            screen.blit(score_text, (width - score_text.get_width() - 10, 10))
+            level_text = FONTS["medium"].render(f"Level: 1", True, BLACK)
+            screen.blit(level_text, (10, 10))
+            display_score(width, score)
 
             pygame.display.flip()
 
