@@ -21,12 +21,13 @@ pygame.display.set_caption("Frostbite Rescue")
 # Level 1 Classes (Sprite‑based)
 # ------------------------------------------------------------------
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         width, height = screen.get_size()
         self.image = pygame.image.load("assets/muzbek.png")
-        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.image = pygame.transform.scale(self.image, (64, 64))
         self.rect = self.image.get_rect()
         self.rect.center = (width // 2, height // 2)
         self.speed = 5
@@ -84,9 +85,11 @@ class IceBlock(pygame.sprite.Sprite):
             return 1
         return 0
 
+
 # ------------------------------------------------------------------
 # Main Menu and Win Screen Functions (Unified)
 # ------------------------------------------------------------------
+
 
 def show_main_menu():
     screen.fill(WHITE)
@@ -121,12 +124,7 @@ def show_main_menu():
                     return False
 
 
-def display_score(screen_width, score):
-    score_text = FONTS["medium"].render(f"Score: {score}", True, BLACK)
-    screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))
-
-
-def show_win_screen(score, level):
+def show_win_screen(level):
     screen.fill(WHITE)
     if level == 1:
         title = "Level 1 Complete!"
@@ -135,17 +133,19 @@ def show_win_screen(score, level):
     else:
         title = "You Won!"
     text = FONTS["title"].render(title, True, BLACK)
-    text_rect = text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 3))
+    text_rect = text.get_rect(
+        center=(screen.get_width() // 2, screen.get_height() // 3)
+    )
     screen.blit(text, text_rect)
 
-    # (For level 1, display the rescued score.)
-    if level == 1 and score is not None:
-        display_score(screen.get_width(), score)
-
     next_button_text = FONTS["button"].render("Next", True, BLACK)
-    next_button_rect = next_button_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+    next_button_rect = next_button_text.get_rect(
+        center=(screen.get_width() // 2, screen.get_height() // 2)
+    )
     quit_text = FONTS["button"].render("Quit", True, BLACK)
-    quit_rect = quit_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 + 100))
+    quit_rect = quit_text.get_rect(
+        center=(screen.get_width() // 2, screen.get_height() // 2 + 100)
+    )
 
     screen.blit(next_button_text, next_button_rect)
     screen.blit(quit_text, quit_rect)
@@ -163,9 +163,11 @@ def show_win_screen(score, level):
                     pygame.quit()
                     return False
 
+
 # ------------------------------------------------------------------
 # Level 1 Function (Frostbite Rescue)
 # ------------------------------------------------------------------
+
 
 def run_level_one():
     player = Player()
@@ -219,26 +221,30 @@ def run_level_one():
 
         level_text = FONTS["medium"].render("Level: 1", True, BLACK)
         screen.blit(level_text, (10, 10))
-        display_score(width, score)
+        # display_score(width, score)
 
         # Draw the held animal (attached to the player's hand) with an overlay count.
         if player.held_animal:
             held_rect = player.held_animal.get_rect()
-            held_rect.center = (player.rect.right - 20, player.rect.centery)
+            held_rect.center = (player.rect.left, player.rect.centery)
             screen.blit(player.held_animal, held_rect)
             count_text = FONTS["small"].render(str(score), True, BLACK)
             count_rect = count_text.get_rect()
-            # Adjust the count text so it appears on the bottom‐right of the held animal.
-            count_rect.bottomright = (held_rect.right + count_rect.width // 2, held_rect.bottom - 5)
+            count_rect.bottomright = (
+                held_rect.left + 10,
+                held_rect.bottom,
+            )
             screen.blit(count_text, count_rect)
 
         pygame.display.flip()
 
     return score
 
+
 # ------------------------------------------------------------------
-# Level 2 Function (Labyrinth)
+# Level 2 Function (Labyrinth with Held Animal Behavior)
 # ------------------------------------------------------------------
+
 
 def run_level_two():
     # Local lists for walls and animals.
@@ -252,6 +258,9 @@ def run_level_two():
             self.image = pygame.transform.scale(self.image, (64, 64))
             self.rect = self.image.get_rect()
             self.rect.center = (128, 128)
+            # Add attributes for held animal and rescue counter.
+            self.held_animal = None
+            self.rescue_count = 0
 
         def move(self, dx, dy):
             if dx != 0:
@@ -273,10 +282,16 @@ def run_level_two():
                         self.rect.bottom = wall.rect.top
                     if dy < 0:  # moving up; hit bottom
                         self.rect.top = wall.rect.bottom
-            # Check collision with trapped animals
-            for animal in animals:
+            # Check collision with trapped animals and update held animal and counter.
+            for animal in animals[:]:
                 if self.rect.colliderect(animal.rect) and not animal.rescued:
                     animal.rescue()
+                    self.rescue_count += 1
+                    # Update held animal (scale rescued image to 50x50 for consistency)
+                    self.held_animal = pygame.transform.scale(
+                        animal.image_rescued, (50, 50)
+                    )
+                    animals.remove(animal)
 
     class LabyrinthWall(object):
         def __init__(self, pos):
@@ -371,15 +386,30 @@ def run_level_two():
             screen.blit(animal.image, animal.rect)
         # Draw the player.
         screen.blit(player.image, player.rect)
+        # Draw the held animal attached to the player's hand (with rescue counter).
+        if player.held_animal:
+            held_rect = player.held_animal.get_rect()
+            held_rect.center = (player.rect.right - 20, player.rect.centery)
+            screen.blit(player.held_animal, held_rect)
+            count_text = FONTS["small"].render(str(player.rescue_count), True, BLACK)
+            count_rect = count_text.get_rect()
+            count_rect.bottomright = (
+                held_rect.right + count_rect.width // 2,
+                held_rect.bottom - 5,
+            )
+            screen.blit(count_text, count_rect)
+
         # Display level number.
         level_text = FONTS["medium"].render("Level: 2", True, BLACK)
         screen.blit(level_text, (10, 10))
 
         pygame.display.flip()
 
+
 # ------------------------------------------------------------------
 # Main Game Runner (Runs Level 1 then Level 2)
 # ------------------------------------------------------------------
+
 
 def run_game(skip_main_menu=False):
     while True:
@@ -389,15 +419,16 @@ def run_game(skip_main_menu=False):
 
         # --- Level 1 ---
         score = run_level_one()
-        if not show_win_screen(score, level=1):
+        if not show_win_screen(level=1):
             break
 
         # --- Level 2 (Labyrinth) ---
         run_level_two()
-        if not show_win_screen(None, level=2):
+        if not show_win_screen(level=2):
             break
         else:
             skip_main_menu = True
+
 
 if __name__ == "__main__":
     run_game()
