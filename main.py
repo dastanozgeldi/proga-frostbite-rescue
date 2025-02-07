@@ -32,12 +32,14 @@ class Player(pygame.sprite.Sprite):
             pygame.K_d: pygame.image.load("assets/d_key.png"),
             pygame.K_w: pygame.image.load("assets/w_key.png"),
         }
-
         for key in self.key_sprites:
             self.key_sprites[key] = pygame.transform.scale(
                 self.key_sprites[key], (50, 50)
             )
         self.current_key_sprite = None
+
+        # NEW: Attribute to hold the rescued animal image
+        self.held_animal = None
 
     def update(self, keys):
         if keys[pygame.K_a]:
@@ -114,9 +116,11 @@ def show_main_menu():
                     pygame.quit()
                     return False
 
+
 def display_score(screen_width, score):
     score_text = FONTS["medium"].render(f"Score: {score}", True, BLACK)
     screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))
+
 
 def show_win_screen(score):
     screen.fill(WHITE)
@@ -170,7 +174,8 @@ def run_game(skip_main_menu=False):
         ice_blocks = pygame.sprite.Group()
 
         width, height = screen.get_size()
-        for _ in range(20):
+        total_animals = 20  # total number of animals to rescue
+        for _ in range(total_animals):
             ice = IceBlock(
                 random.randint(100, width - 100), random.randint(100, height - 100)
             )
@@ -195,11 +200,23 @@ def run_game(skip_main_menu=False):
             keys = pygame.key.get_pressed()
             player.update(keys)
 
-            for ice in ice_blocks:
-                if pygame.sprite.collide_rect(player, ice):
-                    score += ice.melt()
+            # Check for collision with any ice block (animal)
+            # We iterate over a copy of the group since we may remove items on collision.
+            for ice in list(ice_blocks):
+                if pygame.sprite.collide_rect(player, ice) and not ice.melted:
+                    # Remove the ice block so it no longer appears on the ground
+                    ice_blocks.remove(ice)
+                    all_sprites.remove(ice)
+                    # Increase score since an animal is rescued
+                    score += 1
+                    # Set the player's held animal to a smaller version of the rescued image.
+                    # (You can adjust the size as needed.)
+                    player.held_animal = pygame.transform.scale(ice.rescued_image, (50, 50))
+                    # Mark as melted (rescued) even though it’s no longer drawn
+                    ice.melted = True
 
-            if all(ice.melted for ice in ice_blocks):
+            # Win condition: when all animals have been rescued
+            if len(ice_blocks) == 0:
                 running = False
 
             all_sprites.draw(screen)
@@ -207,9 +224,16 @@ def run_game(skip_main_menu=False):
             if player.current_key_sprite:
                 screen.blit(player.current_key_sprite, (10, 55))
 
-            level_text = FONTS["medium"].render(f"Level: 1", True, BLACK)
+            level_text = FONTS["medium"].render("Level: 1", True, BLACK)
             screen.blit(level_text, (10, 10))
             display_score(width, score)
+
+            # Draw the held animal attached to the player, if any.
+            # Adjust the offset (here using player's rect.right and rect.centery) as needed.
+            if player.held_animal:
+                held_rect = player.held_animal.get_rect()
+                held_rect.center = (player.rect.right - 20, player.rect.centery)
+                screen.blit(player.held_animal, held_rect)
 
             pygame.display.flip()
 
