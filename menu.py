@@ -7,7 +7,7 @@ def show_main_menu(screen):
     screen.fill("white")
     title_text = FONTS["title"].render("Frostbite Rescue", True, "black")
     title_rect = title_text.get_rect(
-        center=(screen.get_width() // 2, screen.get_height() // 3 - 50)
+        center=(screen.get_width() // 2, screen.get_height() // 2 - 150)
     )
     play_text = FONTS["button"].render("Play", True, "black")
     play_rect = play_text.get_rect(

@@ -29,7 +29,6 @@ class Level:
             x = 0
 
         self.player = Player(screen, pos=(128, 128))
-        self.score = 0
 
         self.running = True
 
@@ -81,7 +80,7 @@ class Level:
                 held_rect = self.player.held_animal.get_rect()
                 held_rect.center = (self.player.rect.left - 5, self.player.rect.centery + 5)
                 self.screen.blit(self.player.held_animal, held_rect)
-                count_text = FONTS["small"].render(str(self.score), True, "black")
+                count_text = FONTS["small"].render(str(self.player.rescue_count), True, "black")
                 count_rect = count_text.get_rect()
                 count_rect.bottomright = (held_rect.left + 10, held_rect.bottom)
                 self.screen.blit(count_text, count_rect)

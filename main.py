@@ -1,5 +1,6 @@
 import pygame
 from level import Level
+from menu import show_main_menu
 from settings import SCREEN
 from win_screen import show_win_screen
 
@@ -10,12 +11,12 @@ levels = [
     [
         "WWWWWWWWWWWWWWWWWWWWWW",
         "W                    W",
-        "W          A   W     W",
+        "W          A         W",
         "W                    W",
         "W                    W",
         "W               A    W",
-        "W   A         WWWWW  W",
-        "W   WWW WWW          W",
+        "W   A                W",
+        "W                    W",
         "W                    W",
         "W                    W",
         "W              A     W",
@@ -59,6 +60,8 @@ levels = [
 
 
 def run_game():
+    show_main_menu(SCREEN)
+
     for i in range(len(levels)):
         level = Level(SCREEN, i + 1, levels[i])
         level.loop(clock)
