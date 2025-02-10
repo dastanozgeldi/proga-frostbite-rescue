@@ -81,6 +81,10 @@ class Level:
                     if progress_width > 0:
                         pygame.draw.rect(self.screen, "red",
                             (bar_pos[0], bar_pos[1], progress_width, bar_height))
+                elif not animal.collected:
+                    # Optional: Add a visual indicator that the animal can be collected
+                    pygame.draw.circle(self.screen, "green", 
+                                    (animal.rect.centerx, animal.rect.top - 10), 5)
 
             # Draw player
             self.screen.blit(self.player.image, self.player.rect)
@@ -94,5 +98,15 @@ class Level:
             # Draw UI elements
             level_text = FONTS["medium"].render(f"Level: {self.level_number}", True, (107, 142, 35))
             self.screen.blit(level_text, (10, 10))
+
+            # Draw the held animal and rescue counter
+            if self.player.held_animal:
+                held_rect = self.player.held_animal.get_rect()
+                held_rect.center = (self.player.rect.left - 5, self.player.rect.centery + 5)
+                self.screen.blit(self.player.held_animal, held_rect)
+                count_text = FONTS["small"].render(str(self.player.rescue_count), True, "black")
+                count_rect = count_text.get_rect()
+                count_rect.bottomright = (held_rect.left + 10, held_rect.bottom)
+                self.screen.blit(count_text, count_rect)
 
             pygame.display.flip()

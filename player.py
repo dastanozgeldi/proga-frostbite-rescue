@@ -1,4 +1,3 @@
-
 import pygame
 
 
@@ -13,10 +12,10 @@ class Player(pygame.sprite.Sprite):
             width, height = screen.get_size()
             pos = (width // 2, height // 2)
         self.rect = self.image.get_rect(center=pos)
-        
+
         # Default speed (used in Level 1); Level 2 movement uses manual dx/dy.
         self.speed = 5
-        
+
         # Attributes used in the labyrinth (Level 2)
         self.rescue_count = 0
         self.held_animal = None
@@ -34,7 +33,9 @@ class Player(pygame.sprite.Sprite):
             pygame.K_w: pygame.image.load("assets/w_key.png"),
         }
         for key in self.key_sprites:
-            self.key_sprites[key] = pygame.transform.scale(self.key_sprites[key], (50, 50))
+            self.key_sprites[key] = pygame.transform.scale(
+                self.key_sprites[key], (50, 50)
+            )
         self.current_key_sprite = None
 
     def update_heat_ray(self, mouse_pos):
@@ -47,13 +48,14 @@ class Player(pygame.sprite.Sprite):
             for animal in animals:
                 if not animal.rescued:
                     # Calculate distance between ray and animal
-                    distance = ((self.heat_ray_pos[0] - animal.rect.centerx) ** 2 + 
-                              (self.heat_ray_pos[1] - animal.rect.centery) ** 2) ** 0.5
-                    
+                    distance = (
+                        (self.heat_ray_pos[0] - animal.rect.centerx) ** 2
+                        + (self.heat_ray_pos[1] - animal.rect.centery) ** 2
+                    ) ** 0.5
+
                     # Check if ray passes near animal
                     if distance < 50:  # Heat ray effective range
                         animal.update_thaw(self.thaw_rate)
-
 
     def update(self, keys, walls=None, animals=None):
         """
@@ -92,25 +94,31 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
 
-        # Collision with walls (Level 2).
+        # Collision with walls
         if walls:
             for wall in walls:
                 if self.rect.colliderect(wall.rect):
-                    if dx > 0:  # Moving right; hit left side of wall.
+                    if dx > 0:  # Moving right; hit left side of wall
                         self.rect.right = wall.rect.left
-                    if dx < 0:  # Moving left; hit right side.
+                    if dx < 0:  # Moving left; hit right side
                         self.rect.left = wall.rect.right
-                    if dy > 0:  # Moving down; hit top.
+                    if dy > 0:  # Moving down; hit top
                         self.rect.bottom = wall.rect.top
-                    if dy < 0:  # Moving up; hit bottom.
+                    if dy < 0:  # Moving up; hit bottom
                         self.rect.top = wall.rect.bottom
 
-        # Collision with animals (Level 2).
+        # Collision with animals - only collect if already rescued
         if animals:
             for animal in animals[:]:
-                if self.rect.colliderect(animal.rect) and not animal.rescued:
-                    animal.rescue()
+                if (
+                    self.rect.colliderect(animal.rect)
+                    and animal.rescued
+                    and not animal.collected
+                ):
+                    animal.collected = True
                     self.rescue_count += 1
-                    # Update held animal with a scaled rescued image.
-                    self.held_animal = pygame.transform.scale(animal.image_rescued, (50, 50))
+                    # Update held animal with a scaled rescued image
+                    self.held_animal = pygame.transform.scale(
+                        animal.image_rescued, (50, 50)
+                    )
                     animals.remove(animal)
