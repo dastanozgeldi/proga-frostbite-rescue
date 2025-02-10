@@ -21,6 +21,11 @@ class Player(pygame.sprite.Sprite):
         self.rescue_count = 0
         self.held_animal = None
 
+        self.heat_ray_active = False
+        self.heat_ray_pos = (0, 0)
+        self.heat_ray_color = (255, 0, 0)  # Red
+        self.thaw_rate = 0.5
+
         # Key sprites for visual feedback when moving (Level 1).
         self.key_sprites = {
             pygame.K_a: pygame.image.load("assets/a_key.png"),
@@ -31,6 +36,24 @@ class Player(pygame.sprite.Sprite):
         for key in self.key_sprites:
             self.key_sprites[key] = pygame.transform.scale(self.key_sprites[key], (50, 50))
         self.current_key_sprite = None
+
+    def update_heat_ray(self, mouse_pos):
+        self.heat_ray_pos = mouse_pos
+        self.heat_ray_active = pygame.mouse.get_pressed()[0]  # Left click
+
+    def apply_heat_ray(self, animals):
+        if self.heat_ray_active:
+            ray_start = (self.rect.centerx, self.rect.centery)
+            for animal in animals:
+                if not animal.rescued:
+                    # Calculate distance between ray and animal
+                    distance = ((self.heat_ray_pos[0] - animal.rect.centerx) ** 2 + 
+                              (self.heat_ray_pos[1] - animal.rect.centery) ** 2) ** 0.5
+                    
+                    # Check if ray passes near animal
+                    if distance < 50:  # Heat ray effective range
+                        animal.update_thaw(self.thaw_rate)
+
 
     def update(self, keys, walls=None, animals=None):
         """
