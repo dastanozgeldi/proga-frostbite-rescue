@@ -101,7 +101,7 @@ class Level:
                     # Draw thaw progress bar above animal
                     bar_width = 64  # Same as animal width
                     bar_height = 5
-                    bar_pos = (animal.rect.x, animal.rect.y - 10)
+                    bar_pos = (animal.rect.x, animal.rect.y)
 
                     # Background bar
                     pygame.draw.rect(
@@ -125,7 +125,7 @@ class Level:
                     pygame.draw.circle(
                         self.screen,
                         "green",
-                        (animal.rect.centerx, animal.rect.top - 10),
+                        (animal.rect.centerx, animal.rect.top),
                         5,
                     )
 
