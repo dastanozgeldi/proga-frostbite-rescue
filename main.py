@@ -61,7 +61,7 @@ levels = [
 def run_game():
     for i in range(len(levels)):
         level = Level(SCREEN, i + 1, levels[i])
-        level.update(clock)
+        level.loop(clock)
 
     # All levels complete, show win screen
     show_win_screen(SCREEN)

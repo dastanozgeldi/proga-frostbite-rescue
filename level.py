@@ -33,7 +33,7 @@ class Level:
 
         self.running = True
 
-    def update(self, clock):
+    def loop(self, clock):
         while self.running:
             clock.tick(FPS)
             for event in pygame.event.get():
