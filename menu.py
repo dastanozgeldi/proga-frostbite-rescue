@@ -1,11 +1,10 @@
-
 import pygame
-from settings import FONTS
+from settings import FONTS, TITLE
 
 
 def show_main_menu(screen):
     screen.fill("white")
-    title_text = FONTS["title"].render("Frostbite Rescue", True, "black")
+    title_text = FONTS["title"].render(TITLE, True, "black")
     title_rect = title_text.get_rect(
         center=(screen.get_width() // 2, screen.get_height() // 2 - 150)
     )

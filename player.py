@@ -4,6 +4,7 @@ import pygame
 class Player(pygame.sprite.Sprite):
     def __init__(self, screen, pos=None):
         super().__init__()
+        self.screen = screen
         # Load and scale the player image.
         self.image = pygame.image.load("assets/muzbek.png")
         self.image = pygame.transform.scale(self.image, (64, 64))
@@ -64,6 +65,9 @@ class Player(pygame.sprite.Sprite):
             self.current_key_sprite = self.key_sprites[pygame.K_s]
         else:
             self.current_key_sprite = None
+
+        if self.current_key_sprite:
+            self.screen.blit(self.current_key_sprite, (100, 100))
 
         self.move(dx, dy, walls, animals)
 

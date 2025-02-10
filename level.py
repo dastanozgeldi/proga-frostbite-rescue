@@ -35,12 +35,28 @@ class Level:
         self.player = Player(screen, pos=(128, 128))
         self.running = True
 
+        # ---- Timer Setup ----
+        self.timer_duration = 30000  # 30,000 ms = 30 seconds
+        self.start_time = pygame.time.get_ticks()
+
     def are_all_animals_collected(self):
         return len(self.animals) == 0  # Since we remove animals when collected
 
     def loop(self, clock):
         while self.running:
             clock.tick(FPS)
+
+            # ---- Timer Check ----
+            current_time = pygame.time.get_ticks()
+            elapsed_time = current_time - self.start_time
+            remaining_time = self.timer_duration - elapsed_time
+
+            # If time has run out, quit the game
+            if remaining_time <= 0:
+                print("Time's up! You failed to finish the level in time.")
+                pygame.quit()
+                sys.exit()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -101,7 +117,7 @@ class Level:
 
             for ice in self.ice_blocks[
                 :
-            ]:  # Use slice copy since we might modify during iteration
+            ]:  # Use a slice copy since we might modify during iteration
                 # Draw ice block with slight transparency
                 ice_surface = pygame.Surface((64, 64), pygame.SRCALPHA)
                 pygame.draw.rect(ice_surface, (150, 200, 255, 180), (0, 0, 64, 64))
@@ -172,9 +188,20 @@ class Level:
 
             # Draw UI elements
             level_text = FONTS["medium"].render(
-                f"Level: {self.level_number}", True, (107, 142, 35)
+                f"Level: {self.level_number}", True, "white"
             )
             self.screen.blit(level_text, (10, 10))
+
+            # Draw the timer countdown (displayed in seconds)
+            timer_seconds = remaining_time / 1000
+            timer_text = FONTS["medium"].render(
+                f"Time left: {timer_seconds:.1f}s", True, "white"
+            )
+            # Position the timer in the upper right corner
+            self.screen.blit(
+                timer_text,
+                ((self.screen.get_width() - timer_text.get_width()) // 2, 10),
+            )
 
             # Draw animals remaining counter
             animals_text = FONTS["small"].render(

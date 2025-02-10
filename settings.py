@@ -2,8 +2,9 @@ import pygame
 
 
 pygame.init()
+TITLE = "Frostbite Rescue: Muzbek"
 SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-pygame.display.set_caption("Frostbite Rescue")
+pygame.display.set_caption(TITLE)
 
 FPS = 60
 FONTS = {
