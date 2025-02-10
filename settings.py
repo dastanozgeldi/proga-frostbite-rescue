@@ -2,7 +2,7 @@ import pygame
 
 
 pygame.init()
-SCREEN = pygame.display.set_mode()
+SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Frostbite Rescue")
 
 FPS = 60
