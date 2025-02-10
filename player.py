@@ -42,21 +42,6 @@ class Player(pygame.sprite.Sprite):
         self.heat_ray_pos = mouse_pos
         self.heat_ray_active = pygame.mouse.get_pressed()[0]  # Left click
 
-    def apply_heat_ray(self, animals):
-        if self.heat_ray_active:
-            ray_start = (self.rect.centerx, self.rect.centery)
-            for animal in animals:
-                if not animal.rescued:
-                    # Calculate distance between ray and animal
-                    distance = (
-                        (self.heat_ray_pos[0] - animal.rect.centerx) ** 2
-                        + (self.heat_ray_pos[1] - animal.rect.centery) ** 2
-                    ) ** 0.5
-
-                    # Check if ray passes near animal
-                    if distance < 50:  # Heat ray effective range
-                        animal.update_thaw(self.thaw_rate)
-
     def update(self, keys, walls=None, animals=None):
         """
         Update movement based on key presses.
@@ -82,15 +67,14 @@ class Player(pygame.sprite.Sprite):
 
         self.move(dx, dy, walls, animals)
 
-    def move(self, dx, dy, walls=None, animals=None):
+    def move(self, dx, dy, walls=None, animals=None, ice_blocks=None):
         """Moves the player by dx and dy while handling collisions if provided."""
         if dx != 0:
-            self.move_single_axis(dx, 0, walls, animals)
+            self.move_single_axis(dx, 0, walls, animals, ice_blocks)
         if dy != 0:
-            self.move_single_axis(0, dy, walls, animals)
+            self.move_single_axis(0, dy, walls, animals, ice_blocks)
 
-    def move_single_axis(self, dx, dy, walls=None, animals=None):
-        """Helper method for moving along a single axis and handling collisions."""
+    def move_single_axis(self, dx, dy, walls=None, animals=None, ice_blocks=None):
         self.rect.x += dx
         self.rect.y += dy
 
@@ -98,14 +82,27 @@ class Player(pygame.sprite.Sprite):
         if walls:
             for wall in walls:
                 if self.rect.colliderect(wall.rect):
-                    if dx > 0:  # Moving right; hit left side of wall
+                    if dx > 0:
                         self.rect.right = wall.rect.left
-                    if dx < 0:  # Moving left; hit right side
+                    if dx < 0:
                         self.rect.left = wall.rect.right
-                    if dy > 0:  # Moving down; hit top
+                    if dy > 0:
                         self.rect.bottom = wall.rect.top
-                    if dy < 0:  # Moving up; hit bottom
+                    if dy < 0:
                         self.rect.top = wall.rect.bottom
+
+        # Collision with ice blocks
+        if ice_blocks:
+            for ice in ice_blocks:
+                if self.rect.colliderect(ice.rect):
+                    if dx > 0:
+                        self.rect.right = ice.rect.left
+                    if dx < 0:
+                        self.rect.left = ice.rect.right
+                    if dy > 0:
+                        self.rect.bottom = ice.rect.top
+                    if dy < 0:
+                        self.rect.top = ice.rect.bottom
 
         # Collision with animals - only collect if already rescued
         if animals:
@@ -117,8 +114,33 @@ class Player(pygame.sprite.Sprite):
                 ):
                     animal.collected = True
                     self.rescue_count += 1
-                    # Update held animal with a scaled rescued image
                     self.held_animal = pygame.transform.scale(
                         animal.image_rescued, (50, 50)
                     )
                     animals.remove(animal)
+
+    def apply_heat_ray(self, animals, ice_blocks):
+        if self.heat_ray_active:
+            ray_start = (self.rect.centerx, self.rect.centery)
+
+            # Apply to animals
+            for animal in animals:
+                if not animal.rescued:
+                    distance = (
+                        (self.heat_ray_pos[0] - animal.rect.centerx) ** 2
+                        + (self.heat_ray_pos[1] - animal.rect.centery) ** 2
+                    ) ** 0.5
+                    if distance < 50:
+                        animal.update_thaw(self.thaw_rate)
+
+            # Apply to ice blocks
+            for ice in ice_blocks[
+                :
+            ]:  # Use slice copy since we might modify during iteration
+                distance = (
+                    (self.heat_ray_pos[0] - ice.rect.centerx) ** 2
+                    + (self.heat_ray_pos[1] - ice.rect.centery) ** 2
+                ) ** 0.5
+                if distance < 50:
+                    if ice.update_thaw(self.thaw_rate):
+                        ice_blocks.remove(ice)

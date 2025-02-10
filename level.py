@@ -1,6 +1,7 @@
 import sys
 import pygame
 from animal import Animal
+from ice import Ice
 from player import Player
 from settings import FONTS, FPS
 from wall import Wall
@@ -13,6 +14,7 @@ class Level:
 
         self.walls = []
         self.animals = []
+        self.ice_blocks = []  # New list for ice blocks
 
         self.exit_rect = None
         x = y = 0
@@ -24,6 +26,8 @@ class Level:
                     self.exit_rect = pygame.Rect(x, y, 64, 64)
                 elif col == "A":
                     Animal((x, y), self.animals)
+                elif col == "I":
+                    Ice((x, y), self.ice_blocks)
                 x += 64
             y += 64
             x = 0
@@ -54,16 +58,17 @@ class Level:
             if keys[pygame.K_s]:
                 dy = 8
 
-            # Update player position and heat ray
-            self.player.move(dx, dy, self.walls, self.animals)
+            # Update player position and check ice block collisions
+            self.player.move(dx, dy, self.walls, self.animals, self.ice_blocks)
             self.player.update_heat_ray(pygame.mouse.get_pos())
-            self.player.apply_heat_ray(self.animals)
 
-            # Check for level completion when player reaches exit (only if all animals are collected)
+            # Apply heat ray to both animals and ice
+            self.player.apply_heat_ray(self.animals, self.ice_blocks)
+
+            # Check for level completion
             if self.exit_rect and self.player.rect.colliderect(self.exit_rect):
                 if self.are_all_animals_collected():
                     self.running = False
-                # Optional: Add a sound effect or visual feedback if exit is blocked
 
             # Drawing
             self.screen.fill("white")
@@ -94,23 +99,47 @@ class Level:
                     )
                     self.screen.blit(locked_text, text_rect)
 
+            for ice in self.ice_blocks[
+                :
+            ]:  # Use slice copy since we might modify during iteration
+                # Draw ice block with slight transparency
+                ice_surface = pygame.Surface((64, 64), pygame.SRCALPHA)
+                pygame.draw.rect(ice_surface, (150, 200, 255, 180), (0, 0, 64, 64))
+                self.screen.blit(ice_surface, ice.rect)
+
+                # Draw thaw progress bar
+                bar_width = 64
+                bar_height = 5
+                bar_pos = (ice.rect.x, ice.rect.y - 10)
+
+                # Background bar
+                pygame.draw.rect(
+                    self.screen, "gray", (bar_pos[0], bar_pos[1], bar_width, bar_height)
+                )
+
+                # Progress bar
+                progress_width = (ice.thaw_progress / ice.required_thaw) * bar_width
+                if progress_width > 0:
+                    pygame.draw.rect(
+                        self.screen,
+                        (150, 200, 255),
+                        (bar_pos[0], bar_pos[1], progress_width, bar_height),
+                    )
+
             # Draw animals and their thaw progress bars
             for animal in self.animals:
                 self.screen.blit(animal.image, animal.rect)
                 if not animal.rescued:
-                    # Draw thaw progress bar above animal
-                    bar_width = 64  # Same as animal width
+                    bar_width = 64
                     bar_height = 5
-                    bar_pos = (animal.rect.x, animal.rect.y)
+                    bar_pos = (animal.rect.x, animal.rect.y + 5)
 
-                    # Background bar
                     pygame.draw.rect(
                         self.screen,
                         "gray",
                         (bar_pos[0], bar_pos[1], bar_width, bar_height),
                     )
 
-                    # Progress bar
                     progress_width = (
                         animal.thaw_progress / animal.required_thaw
                     ) * bar_width
@@ -121,11 +150,10 @@ class Level:
                             (bar_pos[0], bar_pos[1], progress_width, bar_height),
                         )
                 elif not animal.collected:
-                    # Visual indicator that the animal can be collected
                     pygame.draw.circle(
                         self.screen,
                         "green",
-                        (animal.rect.centerx, animal.rect.top),
+                        (animal.rect.centerx, animal.rect.top + 5),
                         5,
                     )
 
@@ -166,7 +194,7 @@ class Level:
                     str(self.player.rescue_count), True, "black"
                 )
                 count_rect = count_text.get_rect()
-                count_rect.bottomright = (held_rect.left + 10, held_rect.bottom)
+                count_rect.bottomright = (held_rect.left + 5, held_rect.bottom)
                 self.screen.blit(count_text, count_rect)
 
             pygame.display.flip()
