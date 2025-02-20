@@ -2,6 +2,10 @@ import pygame
 
 
 pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load('music.mp3')
+pygame.mixer.music.play(-1)
+
 TITLE = "Frostbite Rescue: Muzbek"
 SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption(TITLE)

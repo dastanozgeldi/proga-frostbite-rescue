@@ -51,7 +51,7 @@ levels = [
         "W   W     W W   AI   W",
         "W   WWW WWW   W W    W",
         "W     W   W   W W    W",
-        "W W      WW   IAI    W",
+        "W W      WW  IIAI    W",
         "W W   WWWW   WWW  WW W",
         "W          E         W",
         "WWWWWWWWWWWWWWWWWWWWWW",
